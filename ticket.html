@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Booth</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('images/ticketbooth/scene1.png');
+            background-size: cover;
+            background-position: center;
+            flex-direction: column;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        #claimTicketButton {
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ticket Booth!</h1>
+    <button id="claimTicketButton">BUY TICKET</button>
+
+    <script>
+        let hasTicket = localStorage.getItem('hasTicket') === 'true';
+
+        async function claimTicket() {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contractAddress = "0xF73d48A8601552054DF7da3738FF16fEB8701348";
+            const contract = new ethers.Contract(contractAddress, [
+                // Replace with your contract's ABI
+                "function claimTicket() public"
+            ], signer);
+
+            try {
+                const tx = await contract.claimTicket();
+                await tx.wait();
+                console.log("Ticket purchased!");
+
+                // Update local storage and button visibility
+                hasTicket = true;
+                localStorage.setItem('hasTicket', 'true');
+                document.getElementById("claimTicketButton").style.display = "none";
+                alert("You have claimed your ticket! You can now board the train.");
+            } catch (error) {
+                console.error("Error purchasing ticket:", error);
+            }
+        }
+
+        // Hide the button if the user already has a ticket
+        if (hasTicket) {
+            document.getElementById("claimTicketButton").style.display = "none";
+            alert("You already have a ticket for today.");
+        }
+
+        document.getElementById("claimTicketButton").onclick = claimTicket;
+    </script>
+</body>
+</html>
